@@ -67,7 +67,12 @@ public class BigInteger {
 		//trim integer
 		integer = integer.trim();
 		
-		//if the first number is not a digit
+		//if nothing entered, throw illegal argument exception
+		if (integer.length() < 1) {
+			throw new IllegalArgumentException();
+		}
+		
+		//if the first number is not a digit, check signs
 		if (!Character.isDigit(integer.charAt(0))) {
 			if (integer.charAt(0) == '-') {
 				num.negative = true;
@@ -77,6 +82,11 @@ public class BigInteger {
 				throw new IllegalArgumentException();
 			}
 			integer = integer.substring(1); //trim the sign off the number
+		}
+		
+		//if after sign trimming there are no digits, throw exception
+		if (integer.length() < 1) {
+			throw new IllegalArgumentException();
 		}
 		
 		//take care of '0's at the front
@@ -94,14 +104,6 @@ public class BigInteger {
 				throw new IllegalArgumentException();
 			}
 		}
-		
-		//traverse - DELETE THIS LATER: FOR TESTING ONLY
-		System.out.println("Parsing result");
-		System.out.println("Number of Digits: " + num.numDigits);
-		for (DigitNode ptr = num.front; ptr != null; ptr = ptr.next) {
-			System.out.print(ptr.digit + " - > "); //can't use printf because don't know the type
-		}
-		System.out.println();
 		
 		return num;
 	}
@@ -124,7 +126,19 @@ public class BigInteger {
 		//both positive or both negative
 		if ((this.negative == false && other.negative == false)
 				|| (this.negative == true && other.negative == true)) {
-			//both positive = add and make result positive
+			
+			
+			//testing to make sure nothing changed
+			System.out.println("**ORIGINAL");
+			System.out.println("this BigInteger: " + this);
+			System.out.println("this numDigits: " + this.numDigits);
+			System.out.println("this negative: " + this.negative);
+			System.out.println("other BigInteger: " + other);
+			System.out.println("other numDigits: " + other.numDigits);
+			System.out.println("other negative: " + other.negative);
+			
+			
+			//both positive or both negative = add and make result positive
 			DigitNode ptrSmall = this.front;
 			DigitNode ptrBig = other.front;
 			
@@ -140,19 +154,23 @@ public class BigInteger {
 			int addedDigit;
 			int smallDigit, bigDigit;
 			
+			//while the bigger number is still going or there's a carry after the number ends
 			while (ptrBig != null || (ptrBig == null && carry != 0)) {
-				//if ptrSmall is at the end already, pretend there's a 0
+				
+				//if ptrSmall is at the end already, treat as 0
 				if (ptrSmall == null) {
 					smallDigit = 0;
 				} else {
 					smallDigit = ptrSmall.digit;
 				}
 				
+				//if ptrBig is at end, treat as a 0
 				if (ptrBig == null) {
 					bigDigit = 0;
 				} else {
 					bigDigit = ptrBig.digit;
 				}
+				
 				//add digits along with last add's carry
 				addedDigit = bigDigit + smallDigit + carry;
 				
@@ -168,7 +186,7 @@ public class BigInteger {
 					//if nothing there, just add front
 					addedInt.front = new DigitNode(addedDigit, addedInt.front);
 				} else {
-					//if items inside already
+					//if items inside already, add to the end
 					DigitNode ptr = addedInt.front;
 					while (ptr.next != null) {
 						ptr = ptr.next;
@@ -177,7 +195,7 @@ public class BigInteger {
 				}
 				addedInt.numDigits++; //increment number of digits
 				
-				//don't move pointer if at the end already
+				//stop moving pointers if at the end already
 				if (ptrSmall!= null) {
 					ptrSmall = ptrSmall.next;
 				}
@@ -187,48 +205,65 @@ public class BigInteger {
 				}
 			}
 			
-			//DELETE LATER
-			System.out.println("Adding result: ");
-			System.out.println("Number of Digits: " + addedInt.numDigits);
-			for (DigitNode ptr = addedInt.front; ptr != null; ptr = ptr.next) {
-				System.out.print(ptr.digit + " - > ");
+			if (addedInt.numDigits == 1 && addedInt.front.digit == 0) {
+				addedInt.negative = false;
 			}
-			System.out.println();
+			
+			//testing to make sure nothing changed
+			System.out.println("***AFTER");
+			System.out.println("this BigInteger: " + this);
+			System.out.println("this numDigits: " + this.numDigits);
+			System.out.println("this negative: " + this.negative);
+			System.out.println("other BigInteger: " + other);
+			System.out.println("other numDigits: " + other.numDigits);
+			System.out.println("other negative: " + other.negative);
 			
 			return addedInt;
+			
 		} else {
+			
+			
+			//testing to make sure nothing changed
+			System.out.println("**ORIGINAL");
+			System.out.println("this BigInteger: " + this);
+			System.out.println("this numDigits: " + this.numDigits);
+			System.out.println("this negative: " + this.negative);
+			System.out.println("other BigInteger: " + other);
+			System.out.println("other numDigits: " + other.numDigits);
+			System.out.println("other negative: " + other.negative);
+			
+			
 			//one neg and one pos = subtract
 			
-			System.out.println("HEY I GOT TO POINT 1");
-			
-			//copy over this and other since it will be modified during borrowing in subtraction
-			///////****THIS IS NOT COPYING OVER****///////
+			//copy over this BigInteger to prevent modification when borrowing in subtraction
 			BigInteger thisInt = new BigInteger();
-			DigitNode end = thisInt.front;
+			thisInt.negative = this.negative;
 			for (DigitNode ptrThis = this.front; ptrThis != null; ptrThis = ptrThis.next) {
 				//add new digits to back, not front!
 				if (thisInt.numDigits == 0) {
 					//if nothing there, just add front
-					end = new DigitNode(ptrThis.digit, end);
+					thisInt.front = new DigitNode(ptrThis.digit, thisInt.front);
+					thisInt.numDigits++;
 				} else {
-					//if items inside already
-					end.next = new DigitNode(ptrThis.digit, null); //add to end
-					end = end.next;
+					//if items inside already, add to back
+					DigitNode ptr = thisInt.front;
+					while (ptr.next != null) {
+						ptr = ptr.next;
+					}
+					ptr.next = new DigitNode(ptrThis.digit, null); //add to end
+					thisInt.numDigits++;
 				}
-				thisInt.numDigits++; //increment number of digits
 			}
-			System.out.println("THIS IS: ");
-			for (DigitNode ptrThis = thisInt.front; ptrThis != null; ptrThis = ptrThis.next) {
-				System.out.print(ptrThis.digit + " -> ");
-			}
-			System.out.println();
 			
+			//copy over other BigInteger to prevent modification when borrowing in subtraction
 			BigInteger otherInt = new BigInteger();
+			otherInt.negative = other.negative;
 			for (DigitNode ptrOther = other.front; ptrOther != null; ptrOther = ptrOther.next) {
 				//add new digits to back, not front!
 				if (otherInt.numDigits == 0) {
 					//if nothing there, just add front
-					otherInt.front = new DigitNode(ptrOther.digit, this.front);
+					otherInt.front = new DigitNode(ptrOther.digit, otherInt.front);
+					otherInt.numDigits++;
 				} else {
 					//if items inside already
 					DigitNode ptr = otherInt.front;
@@ -236,93 +271,97 @@ public class BigInteger {
 						ptr = ptr.next;
 					}
 					ptr.next = new DigitNode(ptrOther.digit, null); //add to end
+					otherInt.numDigits++;
 				}
-				otherInt.numDigits++; //increment number of digits
 			}
 			
-			System.out.println("HEY I GOT TO POINT 2");
-			
+			//initialize pointers
 			DigitNode ptrPos = thisInt.front;
 			DigitNode ptrNeg = otherInt.front;
 			boolean posBigger = true;
-			boolean thisIntIsPositive = true;
 			
 			//find the pos and neg one and determine which is bigger
-			if (this.negative == true) {
-				ptrNeg = this.front;
-				ptrPos = other.front;
-				thisIntIsPositive = false;
+			if (thisInt.negative == true) {
+				//if this int is the negative one
+				ptrNeg = thisInt.front;
+				ptrPos = otherInt.front;
 				
-				//determine whether pos or negative is bigger
-				if (this.numDigits > other.numDigits) {
+				//determine whether positive or negative is bigger number
+				if (thisInt.numDigits > otherInt.numDigits) {
 					posBigger = false;
-				} else if (this.numDigits < other.numDigits) {
+				} else if (thisInt.numDigits < otherInt.numDigits) {
 					posBigger = true;
 				} else {
-					while(ptrNeg.digit == ptrPos.digit && ptrNeg != null) {
+					boolean sameNumber = true;
+					while (ptrNeg != null && ptrPos != null) {
+						if (ptrPos.digit > ptrNeg.digit) {
+							posBigger = true;
+							sameNumber = false;
+						} else if (ptrPos.digit < ptrNeg.digit) {
+							posBigger = false;
+							sameNumber = false;
+						} else {
+							//do nothing
+						}
 						ptrNeg = ptrNeg.next;
 						ptrPos = ptrPos.next;
 					}
-					if (ptrNeg == null) {
-						//they are the same number, order does not matter
+					
+					if (sameNumber) {
+						//they are the same number in the end, order does not matter
 						posBigger = true;
-					} else {
-						if (ptrNeg.digit > ptrPos.digit) {
-							posBigger = false;
-						} else {
-							posBigger = true;
-						}
 					}
 				}
 				
-				//reset pointers
-				ptrNeg = this.front;
-				ptrPos = other.front;
+				//reset pointers with this as negative
+				ptrNeg = thisInt.front;
+				ptrPos = otherInt.front;
 				
 			} else {
 				//determine whether pos or negative is bigger
-				if (this.numDigits > other.numDigits) {
+				//this is positive, other is negative
+				if (thisInt.numDigits > otherInt.numDigits) {
 					posBigger = true;
-				} else if (this.numDigits < other.numDigits) {
+				} else if (thisInt.numDigits < otherInt.numDigits) {
 					posBigger = false;
 				} else {
-					while(ptrNeg.digit == ptrPos.digit && ptrNeg != null) {
+					boolean sameNumber = true;
+					while (ptrNeg != null && ptrPos != null) {
+						if (ptrPos.digit > ptrNeg.digit) {
+							posBigger = true;
+							sameNumber = false;
+						} else if (ptrPos.digit < ptrNeg.digit) {
+							posBigger = false;
+							sameNumber = false;
+						} else {
+							//do nothing
+						}
 						ptrNeg = ptrNeg.next;
 						ptrPos = ptrPos.next;
 					}
-					if (ptrNeg == null) {
+					
+					if (sameNumber) {
 						//they are the same number, order does not matter
 						posBigger = true;
-					} else {
-						if (ptrNeg.digit > ptrPos.digit) {
-							posBigger = false;
-						} else {
-							posBigger = true;
-						}
 					}
 				}
 				
-				//reset pointers
+				//reset pointers with this being positive
 				ptrPos = thisInt.front;
 				ptrNeg = otherInt.front;
-				thisIntIsPositive = true;
 			}
 			
-			System.out.println("HEY I GOT TO POINT 3");
-			
+			boolean makeAnswerNegative;
 			//set up subtraction
 			if (!posBigger) {
 				//the negative is bigger, so flip the values, subtract as normal, and make answer negative in the end
 				DigitNode temp = ptrNeg;
 				ptrNeg = ptrPos;
 				ptrPos = temp; //swapped places - ptrPos always the bigger number
-				if (thisIntIsPositive) {
-					thisIntIsPositive = false;
-				} else {
-					thisIntIsPositive = true;
-				}
+				makeAnswerNegative = true;
 			} else {
 				//do a normal subtraction, answer will be positive in the end
+				makeAnswerNegative = false;
 			}
 			
 			//subtract - pos - neg
@@ -337,6 +376,7 @@ public class BigInteger {
 					bottomDigit = ptrNeg.digit;
 				}
 				subtracted = ptrPos.digit - bottomDigit; //top - bottom
+				
 				if (subtracted < 0) {
 					//positive one on top = the one to borrow from
 					DigitNode ptrPosOriginal = ptrPos;
@@ -346,8 +386,8 @@ public class BigInteger {
 						ptrPos = ptrPos.next;
 					}
 					ptrPos.digit--;
-					subtracted = ptrPos.digit + 10 - bottomDigit;
 					ptrPos = ptrPosOriginal;
+					subtracted = ptrPos.digit + 10 - bottomDigit;
 				}
 				
 				//insert in back of linked list
@@ -371,12 +411,53 @@ public class BigInteger {
 				}
 			}
 			
-			if (!posBigger) {
+			if (makeAnswerNegative) {
 				//make answer negative because it was flipped earlier
 				answer.negative = true;
 			} else {
 				answer.negative = false;
 			}
+			
+			//parse 0's out
+			int numDigitsOfAnswer = answer.numDigits;
+			if (numDigitsOfAnswer > 1) {
+				for (int i = answer.numDigits; i > 0; i--) {
+					DigitNode ptr = answer.front;
+					if (numDigitsOfAnswer > 2) {
+						for (int j = 0; j < i; j++) {
+							if (ptr.next.next == null) {
+								break;
+							}
+							ptr = ptr.next;
+						}
+						
+						if (ptr.next.digit == 0) {
+							ptr.next = null;
+							numDigitsOfAnswer--;
+						} else {
+							break;
+						}
+					} else {
+						//only two linked list items
+						if (ptr.next.digit == 0) {
+							ptr.next = null;
+							numDigitsOfAnswer--;
+						}
+						break;
+					}
+				}
+			}
+			answer.numDigits = numDigitsOfAnswer;
+			
+			//testing to make sure nothing changed
+			System.out.println("***AFTER");
+			System.out.println("this BigInteger: " + this);
+			System.out.println("this numDigits: " + this.numDigits);
+			System.out.println("this negative: " + this.negative);
+			System.out.println("other BigInteger: " + other);
+			System.out.println("other numDigits: " + other.numDigits);
+			System.out.println("other negative: " + other.negative);
+			
 			
 			return answer;
 		}
@@ -391,7 +472,7 @@ public class BigInteger {
 	 * @return A new BigInteger which is the product of this BigInteger and other.
 	 */
 	public BigInteger multiply(BigInteger other) {
-		
+
 		BigInteger answer = new BigInteger();
 		answer = parse("0"); //start with 0
 		DigitNode thisPtr = this.front;
@@ -465,6 +546,11 @@ public class BigInteger {
 			 answer.negative = false;
 		} else {
 			answer.negative = true;
+		}
+		
+		//make 0 positive
+		if (answer.numDigits == 1 && answer.front.digit == 0) {
+			answer.negative = false;
 		}
 		
 		return answer;
