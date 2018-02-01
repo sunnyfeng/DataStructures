@@ -40,5 +40,13 @@ public class Stack<T> {
 			return false;
 		}
 	}
+	
+	public String toString () {
+		String string = "Stack: ";
+		for (Node<T> ptr = front; ptr != null; ptr = ptr.next) {
+			string += ptr.data + ", ";
+		}
+		return string;
+	}
 
 }

@@ -85,6 +85,7 @@ public class IntLL {
 		//if target is the front
 		IntNode ptr = front;
 		IntNode prev = null;
+		
 		//way number 1 = with two pointers
 		while (ptr != null && ptr.data != target) {
 			prev = ptr;

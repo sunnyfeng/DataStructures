@@ -1,0 +1,12 @@
+5
+a|n
+b|n
+c|n
+d|n
+e|n
+a|b
+b|c
+a|c
+d|e
+e|c
+d|c
